@@ -17,7 +17,7 @@ const handleChange=({currentTarget:input})=>{
 const handleSubmit= async (e)=>{
     e.preventDefault();
     try{
-        const url="";
+        const url="http://loacalhost:3000/api/useers";
         const {data:res}=await axios.post(url,data)
         navigate('/login')
         console.log(res.message)
