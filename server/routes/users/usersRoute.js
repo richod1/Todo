@@ -1,33 +1,27 @@
-const Joi=require('joi')
-const {User,validate}=require('../../model/user.model')
-const bcrypt=require('bcrypt')
-const express=require('express')
-const router=express.Router()
+const router = require("express").Router();
+const { User, validate } = require("../../model/user.model");
+const bcrypt = require("bcrypt");
 
-router.post("/", async (req,res)=>{
-    try{
-        const {error}=validate(req.body)
+router.post("/", async (req, res) => {
+	try {
+		const { error } = validate(req.body);
+		if (error)
+			return res.status(400).send({ message: error.details[0].message });
 
-        if(error)
-        return res.status(400).send({msg:error.details[0].message});
+		const user = await User.findOne({ email: req.body.email });
+		if (user)
+			return res
+				.status(409)
+				.send({ message: "User with given email already Exist!" });
 
-        const {user}=await User.findOne({email:req.body.email})
-        if(user)
-        return res.status(409).send({msg:"User already exist!!"})
+		const salt = await bcrypt.genSalt(Number(process.env.SALT));
+		const hashPassword = await bcrypt.hash(req.body.password, salt);
 
+		await new User({ ...req.body, password: hashPassword }).save();
+		res.status(201).send({ message: "User created successfully" });
+	} catch (error) {
+		res.status(500).send({ message: "Internal Server Error" });
+	}
+});
 
-const salt=await bcrypt.genSalt(Number(process.env.PASS_SALT))
-const hashedPassword=await bcrypt.hash(req.body.password,salt);
-
-await new User({...req.body,password:hashedPassword}).save();
-res.status(201).send({msg:"User created Successfully"})
-
-
-
-    }catch(err){
-        res.status(500).send({err:"Internal serever error"})
-    }
-})
-
-module.exports=router;
-
+module.exports = router;

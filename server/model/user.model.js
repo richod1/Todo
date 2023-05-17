@@ -44,6 +44,4 @@ const validate=(data)=>{
 }
 
 
-module.exports={
-    User,validate
-}
+module.exports={User,validate}
